@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBuzz - Nagpur ↔ Gondia</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="passenger-page light-theme">
+    
+    <!-- Unified Mobile Container -->
+    <div class="mobile-frame">
+        
+        <!-- ==================== SCREEN 1: HOME ==================== -->
+        <div id="screen-home" class="app-screen active">
+            <header class="app-header">
+                <button id="theme-toggle-btn" class="nav-theme-btn" title="Toggle Theme">
+                    <i class="fa-regular fa-moon"></i>
+                </button>
+                <span class="app-title">MyBuzz</span>
+                <button class="nav-alert-btn"><i class="fa-regular fa-bell"></i></button>
+            </header>
+            
+            <div class="screen-content">
+                <div class="user-welcome">
+                    <h2>Hello, {{ username or 'Lucky' }} 👋</h2>
+                    <p>Track your bus in real-time</p>
+                </div>
+
+                <!-- Route Search Card -->
+                <div class="search-card card">
+                    <div class="search-inputs">
+                        <div class="search-input-group">
+                            <div class="search-dot green-dot"></div>
+                            <div class="input-details">
+                                <span class="input-label">From</span>
+                                <input type="text" id="from-stop" value="Nagpur" readonly>
+                                <span class="input-sub">Maliwada Bus Stand</span>
+                            </div>
+                        </div>
+                        <button id="swap-route-btn" class="route-swap-btn">
+                            <i class="fa-solid fa-arrows-up-down"></i>
+                        </button>
+                        <div class="search-input-group">
+                            <div class="search-dot red-dot"></div>
+                            <div class="input-details">
+                                <span class="input-label">To</span>
+                                <input type="text" id="to-stop" value="Gondia" readonly>
+                                <span class="input-sub">Gondia Bus Stand</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="search-buses-btn" class="btn btn-primary btn-block">
+                        Search Buses
+                    </button>
+                </div>
+
+                <!-- Quick Access Grid -->
+                <div class="quick-access">
+                    <h3>Quick Access</h3>
+                    <div class="quick-grid">
+                        <button class="quick-item" id="quick-live">
+                            <div class="quick-icon-wrapper green-glow">
+                                <i class="fa-solid fa-tower-broadcast"></i>
+                            </div>
+                            <span>Live Tracking</span>
+                        </button>
+                        <button class="quick-item" id="quick-schedule">
+                            <div class="quick-icon-wrapper blue-glow">
+                                <i class="fa-regular fa-calendar-days"></i>
+                            </div>
+                            <span>Time Table</span>
+                        </button>
+                        <button class="quick-item" id="quick-fare">
+                            <div class="quick-icon-wrapper orange-glow">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                            </div>
+                            <span>Fare Info</span>
+                        </button>
+                        <button class="quick-item" id="quick-stops">
+                            <div class="quick-icon-wrapper purple-glow">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <span>Nearby Stops</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Last Search Card -->
+                <div class="last-search">
+                    <h3>Last Search</h3>
+                    <div class="last-search-card card" id="last-search-trigger">
+                        <div class="last-search-route">
+                            <span id="last-search-text">Nagpur &rarr; Gondia</span>
+                            <span class="last-search-time">Today, 10:30 AM</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 2: SEARCH RESULTS ==================== -->
+        <div id="screen-search-results" class="app-screen">
+            <header class="app-header">
+                <button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="header-center">
+                    <span class="route-title" id="results-route-title">Nagpur &harr; Gondia</span>
+                    <span class="route-date">8 May 2025, Thursday</span>
+                </div>
+                <button class="filter-btn"><i class="fa-solid fa-sliders"></i></button>
+            </header>
+
+            <!-- Results Sub Tabs -->
+            <div class="bus-type-tabs">
+                <button class="type-tab active">All Buses</button>
+                <button class="type-tab">Ordinary</button>
+                <button class="type-tab">Express</button>
+                <button class="type-tab">AC</button>
+            </div>
+
+            <div class="screen-content">
+                <div class="active-tag-info" id="active-buses-info">
+                    Live Running Buses:
+                </div>
+                <!-- Buses List Container -->
+                <div class="results-buses-list" id="results-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 3: LIVE TRACKING ==================== -->
+        <div id="screen-live-tracking" class="app-screen">
+            <header class="app-header">
+                <button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <span class="app-title">Live Tracking</span>
+                <button class="refresh-btn" id="tracking-refresh-btn"><i class="fa-solid fa-rotate-right"></i></button>
+            </header>
+
+            <div class="screen-content no-padding-bottom">
+                <!-- Bus Detail Tag Card -->
+                <div class="tracking-bus-card card">
+                    <div class="bus-top-row">
+                        <div class="bus-main-meta">
+                            <h3 id="live-bus-num">Bus MH40 N 1234</h3>
+                            <span class="badge badge-ordinary" id="live-bus-type">MSRTC Ordinary</span>
+                        </div>
+                        <span class="status-badge-green">On Time</span>
+                    </div>
+                    <div class="bus-route-row">
+                        <span class="route-summary" id="live-bus-route">Nagpur &rarr; Gondia</span>
+                        <span class="time-summary" id="live-bus-times">06:30 AM &ndash; 10:00 AM</span>
+                    </div>
+                </div>
+
+                <!-- Custom Map Timeline Area -->
+                <div class="map-view-container card">
+                    <div class="live-map-timeline-wrapper">
+                        <div class="map-line"></div>
+                        <ul class="map-timeline" id="map-timeline-stops">
+                            <!-- Populated dynamically by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Map Buttons overlay -->
+                    <div class="map-controls">
+                        <button class="map-btn"><i class="fa-solid fa-crosshairs"></i></button>
+                        <button class="map-btn"><i class="fa-solid fa-compass"></i></button>
+                    </div>
+                </div>
+
+                <!-- Next Stop HUD Overlay Card -->
+                <div class="next-stop-hud card">
+                    <div class="hud-main">
+                        <div class="hud-label-group">
+                            <span class="hud-label">Next Stop</span>
+                            <span class="hud-value" id="hud-next-stop-name">Tumsar</span>
+                        </div>
+                        <div class="hud-metrics">
+                            <div class="metric">
+                                <span class="metric-label">ETA</span>
+                                <span class="metric-value" id="hud-eta-val">09:05 AM</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Distance</span>
+                                <span class="metric-value" id="hud-dist-val">25 km</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Arriving</span>
+                                <span class="metric-value" id="hud-time-val">20 min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Mini Progress Bar -->
+                    <div class="hud-progress-wrapper">
+                        <div class="hud-progress-line">
+                            <div class="hud-progress-fill" id="hud-progress-fill-bar" style="width: 50%;"></div>
+                        </div>
+                        <div class="hud-progress-dots">
+                            <div class="hud-progress-dot reached"></div>
+                            <div class="hud-progress-dot active" id="hud-dot-next"></div>
+                            <div class="hud-progress-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 4: TIMETABLE ==================== -->
+        <div id="screen-timetable" class="app-screen">
+            <header class="app-header">
+                <button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="header-center">
+                    <span class="route-title">Time Table</span>
+                    <span class="route-date" id="timetable-route-label">Nagpur &rarr; Gondia</span>
+                </div>
+                <button class="calendar-btn"><i class="fa-regular fa-calendar"></i></button>
+            </header>
+
+            <div class="timetable-days-tabs">
+                <button class="day-tab active">Today</button>
+                <button class="day-tab">Tomorrow</button>
+                <button class="day-tab">Day After</button>
+            </div>
+
+            <div class="screen-content">
+                <div class="timetable-list" id="timetable-screen-list">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 5: ROUTE & STOPS ==================== -->
+        <div id="screen-route-stops" class="app-screen">
+            <header class="app-header">
+                <button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="header-center">
+                    <span class="route-title">Route & Stops</span>
+                    <span class="route-date" id="route-stops-label">Nagpur &rarr; Gondia</span>
+                </div>
+                <div style="width:40px;"></div>
+            </header>
+
+            <div class="screen-content">
+                <!-- Stats Row -->
+                <div class="route-stats card">
+                    <div class="stat-item">
+                        <span class="stat-label">Distance</span>
+                        <span class="stat-value">147 km</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Duration</span>
+                        <span class="stat-value">3h 30m</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">No. of Stops</span>
+                        <span class="stat-value">9</span>
+                    </div>
+                </div>
+
+                <!-- Static Stops Timeline -->
+                <div class="stops-timeline-card card">
+                    <div class="stops-vertical-line"></div>
+                    <ul class="stops-timeline" id="route-stops-timeline">
+                        <!-- Populated dynamically by JS -->
+                    </ul>
+                </div>
+
+                <div class="timeline-disclaimer card">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Timings may vary due to traffic and road conditions.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 6: ALERTS ==================== -->
+        <div id="screen-alerts" class="app-screen">
+            <header class="app-header">
+                <button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <span class="app-title">Alerts</span>
+                <div style="width:40px;"></div>
+            </header>
+
+            <div class="alerts-tabs">
+                <button class="alert-tab active">All</button>
+                <button class="alert-tab">My Buses</button>
+                <button class="alert-tab">Notifications</button>
+            </div>
+
+            <div class="screen-content">
+                <div class="alerts-list">
+                    <div class="alert-item green-alert">
+                        <div class="alert-icon-wrapper">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div class="alert-details">
+                            <div class="alert-title-row">
+                                <h4>Bus Arriving Soon</h4>
+                                <span class="alert-time">09:05 AM</span>
+                            </div>
+                            <p>Your bus MH40 N 1234 is arriving at Tumsar in 20 minutes.</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-item orange-alert">
+                        <div class="alert-icon-wrapper">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="alert-details">
+                            <div class="alert-title-row">
+                                <h4>Bus Delayed</h4>
+                                <span class="alert-time">08:32 AM</span>
+                            </div>
+                            <p>Bus MH40 N 5678 is delayed by 25 minutes.</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-item blue-alert">
+                        <div class="alert-icon-wrapper">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </div>
+                        <div class="alert-details">
+                            <div class="alert-title-row">
+                                <h4>Schedule Update</h4>
+                                <span class="alert-time">Yesterday</span>
+                            </div>
+                            <p>New bus added at 05:45 PM from Nagpur to Gondia.</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-item purple-alert">
+                        <div class="alert-icon-wrapper">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="alert-details">
+                            <div class="alert-title-row">
+                                <h4>General Info</h4>
+                                <span class="alert-time">2 days ago</span>
+                            </div>
+                            <p>Wear mask and maintain cleanliness while traveling.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCREEN 7: PROFILE ==================== -->
+        <div id="screen-profile" class="app-screen">
+            <header class="app-header">
+                <div style="width:40px;"></div>
+                <span class="app-title">Profile</span>
+                <div style="width:40px;"></div>
+            </header>
+
+            <div class="screen-content">
+                <div class="profile-card card">
+                    <div class="profile-avatar">
+                        <i class="fa-solid fa-user-circle"></i>
+                    </div>
+                    <h3 id="profile-username">{{ username or 'Lucky' }}</h3>
+                    <p class="profile-role">Passenger account</p>
+                </div>
+
+                <div class="profile-actions card">
+                    <button class="profile-action-btn" id="profile-logout-btn">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>Log Out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-screen="home">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="timetable">
+                <i class="fa-solid fa-bus"></i>
+                <span>My Buses</span>
+            </button>
+            <button class="nav-item" data-screen="alerts">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alerts</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Profile</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Passenger Logic -->
+    <script src="{{ url_for('static', filename='js/passenger.js') }}"></script>
+</body>
+</html>

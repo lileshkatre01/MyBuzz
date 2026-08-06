@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBuzz - Register</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page light-theme">
+    <div class="auth-container">
+        <div class="auth-card card">
+            <div class="auth-header">
+                <div class="app-logo">
+                    <i class="fa-solid fa-bus-simple"></i>
+                </div>
+                <h1>Create Account</h1>
+                <p class="subtitle">Join MyBuzz to track routes instantly</p>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="role-selector-tabs">
+                <button type="button" id="role-tab-passenger" class="role-tab {% if role == 'passenger' %}active{% endif %}" data-role="passenger">
+                    <i class="fa-solid fa-user"></i> Passenger
+                </button>
+                <button type="button" id="role-tab-driver" class="role-tab {% if role == 'driver' %}active{% endif %}" data-role="driver">
+                    <i class="fa-solid fa-user-tie"></i> Conductor/Driver
+                </button>
+            </div>
+
+            <form id="register-form" class="auth-form">
+                <!-- Hidden input for role -->
+                <input type="hidden" id="register-role" value="{{ role }}">
+
+                <div class="auth-form-badge">
+                    <i class="fa-solid fa-shield-halved"></i> <span id="auth-portal-title">Passenger Access</span>
+                </div>
+
+                <div class="error-msg" id="error-message">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Registration failed.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user" id="username-icon"></i>
+                        <input type="text" id="username" placeholder="Choose a username" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Gmail ID</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Enter your Gmail ID" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="Create a password (min. 6 characters)" required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <input type="password" id="confirm-password" placeholder="Re-enter your password" required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="register-submit-btn">
+                    <span>Register</span>
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login?role={{ role }}" id="login-link" class="text-link">Log In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Logic -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

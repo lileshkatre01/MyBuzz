@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBuzz - Driver Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dashboard-page role-driver light-theme">
+    <!-- Top Navigation Header -->
+    <header class="main-header">
+        <div class="header-logo">
+            <i class="fa-solid fa-bus-simple"></i>
+            <span class="app-name">MyBuzz <span class="badge badge-primary">Driver</span></span>
+        </div>
+        <div class="user-profile">
+            <button id="theme-toggle-btn" class="btn-logout" title="Toggle Theme" style="color: var(--text-muted); margin-right: 12px;">
+                <i class="fa-regular fa-moon"></i>
+            </button>
+            <span id="driver-name" class="driver-username"><i class="fa-solid fa-user-circle"></i> Loading...</span>
+            <button id="logout-btn" class="btn-logout" title="Log Out">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+        <!-- Section 1: Start New Trip -->
+        <section id="setup-trip-section" class="setup-trip-section card hidden">
+            <div class="section-title">
+                <h2><i class="fa-solid fa-route"></i> Start a New Journey</h2>
+                <p>Configure your bus, route, and scheduled time before departure.</p>
+            </div>
+
+            <!-- Resume Last Ended Trip Option -->
+            <div id="resume-trip-container" class="resume-trip-container card hidden" style="border: 1px solid var(--border-light); margin-bottom: 24px; padding: 18px; border-radius: var(--radius-sm); background-color: var(--white); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="trip-tag" style="background-color: var(--blue-bg); color: var(--blue-status); margin-bottom: 6px;"><i class="fa-solid fa-arrow-rotate-left"></i> Previous Journey Ended</span>
+                        <h4 id="resume-route-name" style="font-size: 1.1rem; font-weight: 700; margin-top: 6px; color: var(--text-dark);">Nagpur &rarr; Gondia</h4>
+                        <p id="resume-details" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Last stopped at: Sakoli | Bus: MH40 N 1234</p>
+                    </div>
+                    <button id="resume-trip-btn" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 30px;">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Resume Trip
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="route-select">Select Route</label>
+                        <div class="select-wrapper" id="route-select-wrapper">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <select id="route-select">
+                                <option value="">-- Choose Route --</option>
+                            </select>
+                        </div>
+                        <div class="error-text-inline" id="route-select-error">Please select a route.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bus-select">Select Bus Number</label>
+                        <div class="select-wrapper" id="bus-select-wrapper">
+                            <i class="fa-solid fa-bus"></i>
+                            <select id="bus-select">
+                                <option value="">-- Choose Bus --</option>
+                            </select>
+                        </div>
+                        <div class="error-text-inline" id="bus-select-error">Please select a bus number.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="departure-time-select">Scheduled Departure Time</label>
+                        <div class="select-wrapper">
+                            <i class="fa-solid fa-clock"></i>
+                            <select id="departure-time-select">
+                                <option value="06:30 AM">06:30 AM</option>
+                                <option value="07:00 AM">07:00 AM</option>
+                                <option value="07:30 AM">07:30 AM</option>
+                                <option value="08:00 AM">08:00 AM</option>
+                                <option value="08:30 AM">08:30 AM</option>
+                                <option value="09:00 AM">09:00 AM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="start-trip-btn" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-circle-play"></i>
+                        <span>Start Trip Now</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Active Trip Check-ins -->
+        <section id="active-trip-section" class="active-trip-section card hidden">
+            <div class="active-trip-header">
+                <div class="trip-meta">
+                    <span class="trip-tag"><i class="fa-solid fa-circle"></i> Live Journey</span>
+                    <h2 id="active-route-name">Nagpur &rarr; Gondia</h2>
+                    <p id="active-bus-details"><i class="fa-solid fa-bus"></i> MH40 N 1234 (MSRTC Ordinary) | Dep: 06:30 AM</p>
+                </div>
+                <button id="end-trip-btn" class="btn btn-danger">
+                    <i class="fa-solid fa-circle-stop"></i>
+                    <span>Force End Trip</span>
+                </button>
+            </div>
+
+            <!-- Stop Check-In Controller Card -->
+            <div class="checkin-controller">
+                <div class="controller-card">
+                    <div class="status-summary">
+                        <span class="label">Current Status</span>
+                        <div class="status-desc" id="current-status-desc">
+                            At Nagpur (Maliwada Bus Stand)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Stop Progress List -->
+            <div class="stops-progress-list">
+                <h3>Route Timeline Checkpoints</h3>
+                <p class="instruction" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                    Tap "Arrive" or "Depart" next to the current/upcoming stop checkpoints to update passenger tracking.
+                </p>
+                <div class="stops-scroller">
+                    <ul class="driver-stops-timeline" id="driver-timeline">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Status -->
+    <footer class="footer-status">
+        <p>&copy; 2026 MyBuzz. Conductor Control Panel.</p>
+        <a href="/" class="btn-link"><i class="fa-solid fa-street-view"></i> Passenger View</a>
+    </footer>
+
+    <!-- Driver Dash Logic -->
+    <script src="{{ url_for('static', filename='js/driver.js') }}"></script>
+</body>
+</html>
