@@ -370,10 +370,95 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const data = await response.json();
             renderLiveTracking(data);
+            fetchAndRenderDelayAnalysis(); // Fetch and render delay and dwell time analysis
 
         } catch (err) {
             console.error('Error fetching live tracking status:', err);
         }
+    }
+
+    // 6b. Fetch and render ML delay prediction analysis
+    async function fetchAndRenderDelayAnalysis() {
+        if (!activeTripId) return;
+        try {
+            const response = await fetch(`/api/trips/${activeTripId}/delay-analysis`);
+            const data = await response.json();
+            if (data && data.analysis) {
+                renderDelayAnalysis(data.analysis);
+            }
+        } catch (err) {
+            console.error('Error fetching delay analysis:', err);
+        }
+    }
+
+    // 6c. Render vertical bar graph for dwell time & travel time
+    function renderDelayAnalysis(analysis) {
+        const barsContainer = document.getElementById('vertical-chart-bars');
+        const yAxisContainer = document.getElementById('chart-y-axis');
+        if (!barsContainer || !yAxisContainer) return;
+        
+        barsContainer.innerHTML = '';
+        
+        if (!analysis || analysis.length === 0) {
+            barsContainer.innerHTML = `
+                <div style="font-size: 0.75rem; text-align: center; color: #64748b; width: 100%; padding-bottom: 20px;">
+                    <i class="fa-solid fa-hourglass-start animate-spin" style="margin-right: 4px;"></i>
+                    Waiting for bus to start from origin...
+                </div>
+            `;
+            return;
+        }
+        
+        // Find max value to scale the chart bars dynamically
+        let maxVal = 10.0;
+        analysis.forEach(item => {
+            if (item.dwell_min > maxVal) maxVal = item.dwell_min;
+            if (item.travel_min > maxVal) maxVal = item.travel_min;
+        });
+        
+        // Round maxVal up to the nearest multiple of 5 for a clean Y-Axis
+        maxVal = Math.ceil(maxVal / 5) * 5;
+        
+        // Update Y-Axis labels
+        yAxisContainer.innerHTML = `
+            <span>${maxVal}m</span>
+            <span>${Math.round(maxVal * 0.75)}m</span>
+            <span>${Math.round(maxVal * 0.5)}m</span>
+            <span>${Math.round(maxVal * 0.25)}m</span>
+            <span>0m</span>
+        `;
+        
+        analysis.forEach(item => {
+            const dwellPercent = (item.dwell_min / maxVal) * 100;
+            const travelPercent = (item.travel_min / maxVal) * 100;
+            
+            const column = document.createElement('div');
+            column.className = 'chart-column';
+            
+            // Build the travel bar if it's not the origin stop
+            let travelBarHtml = '';
+            if (item.stop_order > 0) {
+                travelBarHtml = `
+                    <div class="vertical-bar travel-bar" 
+                         style="height: ${travelPercent}%;" 
+                         data-value="Travel: ${item.travel_min}m (Est: ${item.est_travel_min}m)">
+                    </div>
+                `;
+            }
+            
+            column.innerHTML = `
+                <div class="column-bars">
+                    <div class="vertical-bar dwell-bar" 
+                         style="height: ${dwellPercent}%;" 
+                         data-value="Dwell: ${item.dwell_min}m">
+                    </div>
+                    ${travelBarHtml}
+                </div>
+                <div class="column-label" title="${item.stop_name}">${item.stop_name}</div>
+            `;
+            
+            barsContainer.appendChild(column);
+        });
     }
 
     // Helper to format SQLite timestamp (HH:MM AM/PM)
@@ -463,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If the bus has left this stop (in-transit), render it halfway between this stop and the next!
             if (currentStop && stop.id === currentStop.id && currentStatus === 'left') {
                 li.innerHTML += `
-                    <div class="map-live-bus" style="top: calc(50% + 22px); z-index: 100;">
+                    <div class="map-live-bus" style="top: calc(50% + 37px); z-index: 100;">
                         <i class="fa-solid fa-bus animate-pulse"></i>
                         <span class="live-tag">Live</span>
                     </div>

@@ -662,7 +662,7 @@ body.role-driver {
 .bus-main-meta h3 {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--primary-blue);
+    color: #1e293b; /* Premium slate-800 for high contrast readability */
 }
 
 .bus-main-meta .badge {
@@ -701,29 +701,25 @@ body.role-driver {
     border: 1px solid var(--border-light);
     height: 380px;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto; /* Allow vertical scrolling when timeline overflows */
     border-radius: var(--radius-md);
     margin-bottom: 12px;
 }
 
 /* Overlaying routes lines onto our mock map */
 .live-map-timeline-wrapper {
-    position: absolute;
-    left: 50%;
-    top: 25px;
-    bottom: 25px;
-    transform: translateX(-50%);
+    position: relative;
+    margin: 25px auto;
     width: 250px;
-    height: calc(100% - 50px);
 }
 
 .map-line {
     position: absolute;
-    left: 20px;
+    left: 90px; /* Shifted to create space on the left */
     top: 10px;
     bottom: 10px;
     width: 4px;
-    background-color: var(--primary-blue);
+    background-color: #64748b; /* Modern Slate-Gray for transit line */
     border-radius: 2px;
     z-index: 1;
 }
@@ -732,15 +728,14 @@ body.role-driver {
     list-style: none;
     position: relative;
     z-index: 2;
-    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 50px; /* Added gaps between the bus stops */
 }
 
 .map-stop-node {
     position: relative;
-    padding-left: 45px;
+    padding-left: 115px; /* Increased to align stop names on the right side of the line */
     display: flex;
     align-items: center;
     height: 24px;
@@ -748,14 +743,14 @@ body.role-driver {
 
 .map-dot {
     position: absolute;
-    left: 12px;
+    left: 92px; /* Center aligned perfectly with the line at 90px (center 92px) */
     top: 50%;
     transform: translate(-50%, -50%);
     width: 14px;
     height: 14px;
     border-radius: 50%;
     background-color: var(--white);
-    border: 3px solid var(--primary-blue);
+    border: 3px solid #94a3b8; /* Match the Slate theme for non-reached stops */
     transition: var(--transition-smooth);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -782,36 +777,36 @@ body.role-driver {
 .map-stop-node .stop-name {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--primary-blue);
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 2px 8px;
+    color: #1e293b; /* Slate-800 for high-contrast stop name readability */
+    background-color: var(--white);
+    padding: 4px 10px; /* slightly more padding for a better badge look */
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
+    border: 1px solid #cbd5e1; /* Neutral slate border */
 }
 
 /* Pulsing bus on track map */
 .map-live-bus {
     position: absolute;
-    left: 2px;
+    left: 62px; /* Positioned beside the dot (centered at 92px) */
     width: 32px;
     height: 32px;
-    background-color: var(--accent-blue);
+    background-color: #2563eb; /* Premium Royal Blue for the transit icon */
     color: var(--white);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.85rem;
-    box-shadow: 0 0 10px var(--accent-blue);
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
     z-index: 10;
     transform: translate(-50%, -50%);
 }
 
 .map-live-bus .live-tag {
     position: absolute;
-    left: 36px;
-    background-color: var(--accent-blue);
+    right: 38px; /* Positioned to the left of the bus icon to avoid overlapping the stop name */
+    background-color: #2563eb; /* Match the Royal Blue theme */
     color: var(--white);
     font-size: 0.6rem;
     font-weight: 800;
@@ -877,13 +872,13 @@ body.role-driver {
     font-size: 0.72rem;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--text-dim);
+    color: #64748b; /* Slate-500 for neutral, clean label text */
 }
 
 .hud-label-group .hud-value {
     font-size: 1.15rem;
     font-weight: 800;
-    color: var(--primary-blue);
+    color: #2563eb; /* Premium Royal Blue for next stop highlight */
 }
 
 .hud-metrics {
@@ -910,7 +905,7 @@ body.role-driver {
 .metric-label {
     font-size: 0.65rem;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: #64748b; /* Slate-500 for neutral, clean metric labels */
     font-weight: 700;
 }
 
@@ -1345,7 +1340,7 @@ body.role-driver {
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    color: var(--text-dim);
+    color: #94a3b8; /* Neutral Slate-300 for inactive nav items */
     cursor: pointer;
     font-family: var(--font-primary);
     font-size: 0.65rem;
@@ -2102,5 +2097,188 @@ body.dashboard-page {
 @keyframes inlineErrorFadeIn {
     from { opacity: 0; transform: translateY(-3px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Delay & Dwell Time Analysis Panel --- */
+.delay-analysis-container {
+    background-color: var(--white);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+}
+
+.delay-analysis-container .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 8px;
+}
+
+.delay-analysis-container .panel-header i {
+    color: #2563eb; /* Royal Blue */
+    font-size: 1.1rem;
+}
+
+.delay-analysis-container .panel-header h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* --- Vertical Bar Chart --- */
+.vertical-chart-card {
+    display: flex;
+    height: 240px;
+    margin-top: 10px;
+    border-bottom: 2px solid #cbd5e1; /* X-axis line */
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 38px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    padding-right: 8px;
+    border-right: 2px solid #cbd5e1; /* Y-axis line */
+    height: 180px; /* aligns with bars area height */
+}
+
+.chart-viewport {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 240px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chart-bars-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 0 15px;
+    min-width: 100%;
+    height: 180px; /* height of the grid */
+    position: relative;
+}
+
+/* Column for each stop */
+.chart-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 60px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+/* Area containing the vertical bars side-by-side */
+.column-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Individual vertical bar */
+.vertical-bar {
+    width: 16px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+}
+
+/* Dwell bar styles (Blue) */
+.vertical-bar.dwell-bar {
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
+    box-shadow: 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+/* Travel bar styles (Green) */
+.vertical-bar.travel-bar {
+    background: linear-gradient(180deg, #34d399, #10b981);
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+/* Tooltip/Hover value for each bar */
+.vertical-bar:hover::after {
+    content: attr(data-value);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    background-color: #1e293b;
+    color: var(--white);
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* X-Axis labels */
+.column-label {
+    margin-top: 8px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #1e293b;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 70px;
+    transform: rotate(-15deg); /* Slight slant for readability */
+}
+
+/* Chart Legend */
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.legend-color.dwell-color {
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
+}
+
+.legend-color.travel-color {
+    background: linear-gradient(180deg, #34d399, #10b981);
+}
+
+.legend-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
 }
 

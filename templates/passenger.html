@@ -177,6 +177,41 @@
                     </div>
                 </div>
 
+                <!-- Bus Dwell & Travel Time Analytics Panel -->
+                <div class="delay-analysis-container card">
+                    <div class="panel-header">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <h4>Bus Dwell & Travel Time Analytics</h4>
+                    </div>
+                    
+                    <div class="vertical-chart-card">
+                        <div class="y-axis" id="chart-y-axis">
+                            <span>20m</span>
+                            <span>15m</span>
+                            <span>10m</span>
+                            <span>5m</span>
+                            <span>0m</span>
+                        </div>
+                        <div class="chart-viewport">
+                            <div class="chart-bars-area" id="vertical-chart-bars">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Legend -->
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-color dwell-color"></span>
+                            <span class="legend-label">Dwell Time (Stopped)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color travel-color"></span>
+                            <span class="legend-label">Travel Time (Transit)</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Next Stop HUD Overlay Card -->
                 <div class="next-stop-hud card">
                     <div class="hud-main">

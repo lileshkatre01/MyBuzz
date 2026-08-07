@@ -532,6 +532,24 @@ def api_trip_status(trip_id):
     })
 
 
+@app.route('/api/trips/<int:trip_id>/delay-analysis', methods=['GET'])
+@login_required
+def api_trip_delay_analysis(trip_id):
+    from delay_analyzer import analyze_route_delays
+    conn = get_db_connection()
+    trip = conn.execute('SELECT route_id FROM trips WHERE id = ?', (trip_id,)).fetchone()
+    conn.close()
+    if not trip:
+        return jsonify({'error': 'Trip not found.'}), 404
+        
+    analysis = analyze_route_delays(trip['route_id'], active_trip_id=trip_id)
+    return jsonify({
+        'trip_id': trip_id,
+        'route_id': trip['route_id'],
+        'analysis': analysis
+    })
+
+
 # --- Static Timetable Data API ---
 @app.route('/api/timetable', methods=['GET'])
 @role_required('passenger')
