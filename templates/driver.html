@@ -11,7 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.7">
 </head>
 <body class="dashboard-page role-driver light-theme">
     <!-- Top Navigation Header -->
@@ -21,9 +21,6 @@
             <span class="app-name">MyBuzz <span class="badge badge-primary">Driver</span></span>
         </div>
         <div class="user-profile">
-            <button id="theme-toggle-btn" class="btn-logout" title="Toggle Theme" style="color: var(--text-muted); margin-right: 12px;">
-                <i class="fa-regular fa-moon"></i>
-            </button>
             <span id="driver-name" class="driver-username"><i class="fa-solid fa-user-circle"></i> Loading...</span>
             <button id="logout-btn" class="btn-logout" title="Log Out">
                 <i class="fa-solid fa-right-from-bracket"></i>
@@ -39,19 +36,7 @@
                 <p>Configure your bus, route, and scheduled time before departure.</p>
             </div>
 
-            <!-- Resume Last Ended Trip Option -->
-            <div id="resume-trip-container" class="resume-trip-container card hidden" style="border: 1px solid var(--border-light); margin-bottom: 24px; padding: 18px; border-radius: var(--radius-sm); background-color: var(--white); box-shadow: var(--shadow-sm);">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                    <div>
-                        <span class="trip-tag" style="background-color: var(--blue-bg); color: var(--blue-status); margin-bottom: 6px;"><i class="fa-solid fa-arrow-rotate-left"></i> Previous Journey Ended</span>
-                        <h4 id="resume-route-name" style="font-size: 1.1rem; font-weight: 700; margin-top: 6px; color: var(--text-dark);">Nagpur &rarr; Gondia</h4>
-                        <p id="resume-details" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Last stopped at: Sakoli | Bus: MH40 N 1234</p>
-                    </div>
-                    <button id="resume-trip-btn" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 30px;">
-                        <i class="fa-solid fa-arrow-rotate-left"></i> Resume Trip
-                    </button>
-                </div>
-            </div>
+
 
             <div class="form-container">
                 <div class="form-grid">
@@ -150,6 +135,6 @@
     </footer>
 
     <!-- Driver Dash Logic -->
-    <script src="{{ url_for('static', filename='js/driver.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/driver.js') }}?v=1.6"></script>
 </body>
 </html>

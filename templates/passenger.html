@@ -11,7 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.7">
 </head>
 <body class="passenger-page light-theme">
     
@@ -21,9 +21,7 @@
         <!-- ==================== SCREEN 1: HOME ==================== -->
         <div id="screen-home" class="app-screen active">
             <header class="app-header">
-                <button id="theme-toggle-btn" class="nav-theme-btn" title="Toggle Theme">
-                    <i class="fa-regular fa-moon"></i>
-                </button>
+                <div style="width: 40px;"></div>
                 <span class="app-title">MyBuzz</span>
                 <button class="nav-alert-btn"><i class="fa-regular fa-bell"></i></button>
             </header>
@@ -161,6 +159,12 @@
                     </div>
                 </div>
 
+                <!-- Traffic Delay Alert Banner -->
+                <div id="tracking-delay-banner" class="hidden" style="margin: 0 16px 16px; padding: 12px 16px; border-radius: 12px; background-color: rgba(234, 88, 12, 0.1); border: 1.5px dashed #ea580c; color: #ea580c; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; animation: fadeIn 0.3s ease;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i>
+                    <span id="tracking-delay-text">Traffic Alert: Experiencing a 10-minute delay.</span>
+                </div>
+
                 <!-- Custom Map Timeline Area -->
                 <div class="map-view-container card">
                     <div class="live-map-timeline-wrapper">
@@ -178,36 +182,39 @@
                 </div>
 
                 <!-- Bus Dwell & Travel Time Analytics Panel -->
-                <div class="delay-analysis-container card">
-                    <div class="panel-header">
+                <div class="delay-analysis-container card collapsed">
+                    <div class="panel-header" id="toggle-analytics-btn" style="cursor: pointer; display: flex; align-items: center; width: 100%;">
                         <i class="fa-solid fa-chart-simple"></i>
-                        <h4>Bus Dwell & Travel Time Analytics</h4>
+                        <h4 style="margin-right: auto;">Bus Dwell & Travel Time Analytics</h4>
+                        <i class="fa-solid fa-chevron-down toggle-icon" style="font-size: 0.85rem; color: var(--text-muted); transition: transform 0.3s ease;"></i>
                     </div>
                     
-                    <div class="vertical-chart-card">
-                        <div class="y-axis" id="chart-y-axis">
-                            <span>20m</span>
-                            <span>15m</span>
-                            <span>10m</span>
-                            <span>5m</span>
-                            <span>0m</span>
-                        </div>
-                        <div class="chart-viewport">
-                            <div class="chart-bars-area" id="vertical-chart-bars">
-                                <!-- Populated dynamically by JS -->
+                    <div class="panel-body">
+                        <div class="vertical-chart-card">
+                            <div class="y-axis" id="chart-y-axis">
+                                <span>20m</span>
+                                <span>15m</span>
+                                <span>10m</span>
+                                <span>5m</span>
+                                <span>0m</span>
+                            </div>
+                            <div class="chart-viewport">
+                                <div class="chart-bars-area" id="vertical-chart-bars">
+                                    <!-- Populated dynamically by JS -->
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Chart Legend -->
-                    <div class="chart-legend">
-                        <div class="legend-item">
-                            <span class="legend-color dwell-color"></span>
-                            <span class="legend-label">Dwell Time (Stopped)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color travel-color"></span>
-                            <span class="legend-label">Travel Time (Transit)</span>
+                        
+                        <!-- Chart Legend -->
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <span class="legend-color dwell-color"></span>
+                                <span class="legend-label">Dwell Time (Stopped)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color travel-color"></span>
+                                <span class="legend-label">Travel Time (Transit)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,6 +444,6 @@
     </div>
 
     <!-- Passenger Logic -->
-    <script src="{{ url_for('static', filename='js/passenger.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/passenger.js') }}?v=1.5"></script>
 </body>
 </html>

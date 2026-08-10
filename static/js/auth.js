@@ -406,4 +406,23 @@ document.addEventListener('DOMContentLoaded', () => {
             forgotSuccessMsg.style.display = 'flex';
         }
     }
+
+    // 5. Password Visibility Toggle Logic
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+    togglePasswordButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            if (!input) return;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            }
+        });
+    });
 });

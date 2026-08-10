@@ -419,14 +419,14 @@ def api_update_trip():
     if status == 'reached' and stop_id == last_stop['id']:
         cursor.execute('''
             UPDATE trips 
-            SET current_stop_id = ?, current_status = ?, status = 'completed', last_updated = CURRENT_TIMESTAMP
+            SET current_stop_id = ?, current_status = ?, status = 'completed', delay_minutes = 0, last_updated = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (stop_id, status, trip_id))
         is_completed = True
     else:
         cursor.execute('''
             UPDATE trips 
-            SET current_stop_id = ?, current_status = ?, last_updated = CURRENT_TIMESTAMP
+            SET current_stop_id = ?, current_status = ?, delay_minutes = 0, last_updated = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (stop_id, status, trip_id))
 
@@ -438,6 +438,35 @@ def api_update_trip():
         'message': f'Status updated to {status} at stop {stop["stop_name"]}.',
         'is_completed': is_completed
     })
+
+@app.route('/api/trips/report-delay', methods=['POST'])
+@role_required('driver')
+def api_report_delay():
+    data = request.get_json() or {}
+    trip_id = data.get('trip_id')
+    delay_minutes = data.get('delay_minutes', 0)
+
+    if not trip_id:
+        return jsonify({'error': 'Missing trip_id.'}), 400
+
+    conn = get_db_connection()
+    # Verify trip ownership and status
+    trip = conn.execute('SELECT * FROM trips WHERE id = ? AND driver_id = ? AND status = \'active\'', (trip_id, session['user_id'])).fetchone()
+    if not trip:
+        conn.close()
+        return jsonify({'error': 'Active trip not found or unauthorized access.'}), 404
+
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE trips 
+        SET delay_minutes = ?, last_updated = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (delay_minutes, trip_id))
+    
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True, 'message': f'Traffic delay of {delay_minutes} minutes reported successfully.'})
 
 @app.route('/api/trips/end', methods=['POST'])
 @role_required('driver')

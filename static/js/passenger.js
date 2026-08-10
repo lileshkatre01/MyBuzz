@@ -687,6 +687,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 10. Handle Passenger Log out
     if (profileLogoutBtn) {
         profileLogoutBtn.addEventListener('click', async () => {
+            const confirmed = await showCustomConfirm('Are you sure you want to log out?');
+            if (!confirmed) return;
             try {
                 const response = await fetch('/api/logout', { method: 'POST' });
                 if (response.ok) {

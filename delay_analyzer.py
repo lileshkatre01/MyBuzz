@@ -47,6 +47,12 @@ def analyze_route_delays(route_id, active_trip_id=None):
     analysis_results = []
     
     if active_trip_id:
+        # Fetch delay_minutes and current stop status from trips table
+        cursor.execute('SELECT current_stop_id, delay_minutes FROM trips WHERE id = ?', (active_trip_id,))
+        trip_row = cursor.fetchone()
+        trip_delay_min = trip_row['delay_minutes'] if trip_row else 0
+        trip_curr_stop_id = trip_row['current_stop_id'] if trip_row else None
+
         # Fetch logs for the active trip
         cursor.execute('''
             SELECT stop_id, status, timestamp
@@ -77,9 +83,6 @@ def analyze_route_delays(route_id, active_trip_id=None):
                     dwell_min = round((left_time - reached_time).total_seconds() / 60.0, 1)
                 else:
                     # Bus is currently at this stop, calculate dwell relative to now (UTC or local)
-                    # Use datetime.utcnow() or last updated timestamp
-                    # In python, database logs might be stored as UTC or local time
-                    # We can use UTC if database matches, or fallback safely to a baseline if time diff is too large
                     now_time = datetime.utcnow()
                     diff_sec = (now_time - reached_time).total_seconds()
                     if diff_sec < 0 or diff_sec > 7200: # if time difference is negative or more than 2 hours (due to timezone mismatch)
@@ -87,6 +90,10 @@ def analyze_route_delays(route_id, active_trip_id=None):
                     else:
                         dwell_min = round(diff_sec / 60.0, 1)
                     dwell_min = max(0.1, dwell_min) # clamp to positive
+                    
+                    # Incorporate reported traffic delay dynamically
+                    if sid == trip_curr_stop_id:
+                        dwell_min += trip_delay_min
                 
                 # Calculate Travel Time (from previous stop's departure to current arrival)
                 travel_min = 0.0

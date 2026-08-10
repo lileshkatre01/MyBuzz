@@ -63,6 +63,7 @@ def init_db():
         departure_time TEXT NOT NULL,
         current_stop_id INTEGER,
         current_status TEXT CHECK(current_status IN ('reached', 'left') OR current_status IS NULL),
+        delay_minutes INTEGER DEFAULT 0,
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (bus_id) REFERENCES buses (id),
         FOREIGN KEY (driver_id) REFERENCES users (id),
@@ -83,18 +84,26 @@ def init_db():
     )
     ''')
 
+    # Migration check: safely add delay_minutes if the database already exists
+    try:
+        cursor.execute("ALTER TABLE trips ADD COLUMN delay_minutes INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
 
     # 2. Seed Data if empty
     # Seed Users
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
-        drivers = [
+        users = [
             ('driver1', 'driver1@gmail.com', generate_password_hash('driver123'), 'driver'),
             ('conductor1', 'conductor1@gmail.com', generate_password_hash('conductor123'), 'driver'),
-            ('admin', 'admin@gmail.com', generate_password_hash('admin123'), 'admin')
+            ('admin', 'admin@gmail.com', generate_password_hash('admin123'), 'admin'),
+            ('demo', 'demo@gmail.com', generate_password_hash('demo123'), 'passenger'),
+            ('passenger1', 'passenger1@gmail.com', generate_password_hash('passenger123'), 'passenger')
         ]
-        cursor.executemany("INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)", drivers)
+        cursor.executemany("INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)", users)
 
     # Seed Routes
     cursor.execute("SELECT COUNT(*) FROM routes")

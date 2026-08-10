@@ -11,10 +11,44 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.7">
 </head>
 <body class="auth-page light-theme">
     <div class="auth-container">
+        <!-- Brand Info Side -->
+        <div class="auth-info-side">
+            <h2>Track. Plan. <span>Travel.</span></h2>
+            <div class="quote-container">
+                <blockquote>
+                    "Connecting Nagpur & Gondia commuters with predictive transit intelligence and reliable real-time tracking."
+                </blockquote>
+                <span class="quote-author">MyBuzz Journey Tracker</span>
+            </div>
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <div class="feature-text">
+                        <h4>Live Corridor Tracking</h4>
+                        <p>Track buses on the Nagpur &harr; Gondia route and view exact current stop locations.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div class="feature-text">
+                        <h4>Predictive ETAs & Schedule</h4>
+                        <p>Get precise arrival predictions and consult complete scheduled route timetables.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="feature-text">
+                        <h4>Delay & Bottleneck Analysis</h4>
+                        <p>Know delays, speed averages, and road conditions instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="auth-card card">
             <div class="auth-header">
                 <div class="app-logo">
@@ -60,12 +94,13 @@
                     <div class="input-wrapper">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <i class="fa-solid fa-eye-slash toggle-password" style="position: absolute; right: 14px; left: auto; cursor: pointer;"></i>
                     </div>
                     <div class="forgot-pwd-link-container" style="text-align: right; margin-top: 6px;">
                         <a href="#" id="forgot-password-link" style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-decoration: none;">Forgot Password?</a>
                     </div>
                 </div>
-
+                
                 <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn">
                     <span>Log In</span>
                     <i class="fa-solid fa-arrow-right-to-bracket"></i>
@@ -118,6 +153,7 @@
                         <div class="input-wrapper">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="forgot-new-password" placeholder="Min. 6 characters">
+                            <i class="fa-solid fa-eye-slash toggle-password" style="position: absolute; right: 14px; left: auto; cursor: pointer;"></i>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="btn-reset-password">
