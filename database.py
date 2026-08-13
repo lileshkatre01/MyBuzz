@@ -64,6 +64,7 @@ def init_db():
         current_stop_id INTEGER,
         current_status TEXT CHECK(current_status IN ('reached', 'left') OR current_status IS NULL),
         delay_minutes INTEGER DEFAULT 0,
+        seat_status TEXT DEFAULT 'seats_available' CHECK(seat_status IN ('seats_available', 'standing_only', 'full')),
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (bus_id) REFERENCES buses (id),
         FOREIGN KEY (driver_id) REFERENCES users (id),
@@ -84,9 +85,14 @@ def init_db():
     )
     ''')
 
-    # Migration check: safely add delay_minutes if the database already exists
+    # Migration check: safely add delay_minutes and seat_status if the database already exists
     try:
         cursor.execute("ALTER TABLE trips ADD COLUMN delay_minutes INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE trips ADD COLUMN seat_status TEXT DEFAULT 'seats_available'")
     except sqlite3.OperationalError:
         pass
 
@@ -101,7 +107,9 @@ def init_db():
             ('conductor1', 'conductor1@gmail.com', generate_password_hash('conductor123'), 'driver'),
             ('admin', 'admin@gmail.com', generate_password_hash('admin123'), 'admin'),
             ('demo', 'demo@gmail.com', generate_password_hash('demo123'), 'passenger'),
-            ('passenger1', 'passenger1@gmail.com', generate_password_hash('passenger123'), 'passenger')
+            ('passenger1', 'passenger1@gmail.com', generate_password_hash('passenger123'), 'passenger'),
+            ('ex', 'ex@gmail.com', generate_password_hash('driver123'), 'driver'),
+            ('gg', 'gg@gmail.com', generate_password_hash('driver123'), 'driver')
         ]
         cursor.executemany("INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)", users)
 
@@ -174,10 +182,5 @@ def init_db():
     print("Database initialized and seeded successfully.")
 
 if __name__ == '__main__':
-    if os.path.exists(DATABASE_PATH):
-        try:
-            os.remove(DATABASE_PATH)
-            print("Deleted existing database for migration.")
-        except Exception as e:
-            print(f"Warning: could not delete database: {e}")
+    # Initialize/migrate database tables without deleting existing records
     init_db()

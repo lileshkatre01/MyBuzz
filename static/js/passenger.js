@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // DOM Elements
-    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    const navItems = document.querySelectorAll('.nav-item');
     const backButtons = document.querySelectorAll('.app-screen .back-btn');
     
     // Home controls
@@ -103,10 +103,23 @@ document.addEventListener('DOMContentLoaded', () => {
         setupNav();
         setupHomeActions();
         setupBackActions();
+        setupAnalyticsToggle();
         
         // Auto-fetch static updates
         fetchTimetable();
         fetchRouteStops();
+    }
+
+    function setupAnalyticsToggle() {
+        const toggleBtn = document.getElementById('toggle-analytics-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const container = toggleBtn.closest('.delay-analysis-container');
+                if (container) {
+                    container.classList.toggle('collapsed');
+                }
+            });
+        }
     }
 
     // 1. Navigation Controller
@@ -118,9 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear any detail view tracking loops
                 clearInterval(pollInterval);
                 
-                // Reset bottom nav active classes
+                // Reset and sync all nav items targeting the same screen
                 navItems.forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
+                document.querySelectorAll(`.nav-item[data-screen="${targetScreen}"]`).forEach(n => {
+                    n.classList.add('active');
+                });
 
                 // Switch screens
                 switchScreen(targetScreen);
@@ -142,6 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (screens[screenKey]) {
             screens[screenKey].classList.add('active');
         }
+        
+        // Auto-synchronize navigation highlights when switching screens programmatically
+        navItems.forEach(n => n.classList.remove('active'));
+        document.querySelectorAll(`.nav-item[data-screen="${screenKey}"]`).forEach(n => {
+            n.classList.add('active');
+        });
     }
 
     // 2. Setup Back Buttons
@@ -283,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let badgeClass = sched.type.includes('Shivshahi') ? 'badge-shivshahi' : 'badge-ordinary';
             let liveTag = '';
+            let seatBadge = '';
             
             if (activeRun) {
                 liveTag = `
@@ -291,6 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>LIVE</span>
                     </div>
                 `;
+                
+                const status = activeRun.seat_status || 'seats_available';
+                if (status === 'seats_available') {
+                    seatBadge = `<span class="badge-seat badge-seat-green"><i class="fa-solid fa-chair"></i> Seats Available</span>`;
+                } else if (status === 'standing_only') {
+                    seatBadge = `<span class="badge-seat badge-seat-yellow"><i class="fa-solid fa-users"></i> Standing Only</span>`;
+                } else if (status === 'full') {
+                    seatBadge = `<span class="badge-seat badge-seat-red"><i class="fa-solid fa-circle-xmark"></i> Bus Full</span>`;
+                }
             }
 
             card.innerHTML = `
@@ -314,8 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="bus-bottom-meta-row">
-                    <div class="bus-type-badge-col">
+                    <div class="bus-type-badge-col" style="display: flex; gap: 8px; align-items: center;">
                         <span class="${badgeClass}">${sched.type}</span>
+                        ${seatBadge}
                     </div>
                     <div class="bus-fare-col">
                         <i class="fa-regular fa-bookmark bookmark-icon"></i>
@@ -488,6 +520,40 @@ document.addEventListener('DOMContentLoaded', () => {
         liveBusNum.textContent = `Bus ${trip.bus_number}`;
         liveBusType.textContent = trip.bus_type;
         liveBusType.className = trip.bus_type.includes('Shivshahi') ? 'badge badge-shivshahi' : 'badge badge-ordinary';
+
+        // Update Traffic Delay Alert Banner
+        const delayBanner = document.getElementById('tracking-delay-banner');
+        const delayText = document.getElementById('tracking-delay-text');
+        if (delayBanner && delayText) {
+            if (data.bottlenecks && data.bottlenecks.length > 0) {
+                const lastB = data.bottlenecks[data.bottlenecks.length - 1];
+                delayText.innerHTML = `Traffic Alert: Auto-detected heavy traffic between <strong>${lastB.prev_stop_name}</strong> and <strong>${lastB.curr_stop_name}</strong> (+${lastB.delay_minutes} min delay).`;
+                delayBanner.classList.remove('hidden');
+            } else if (trip.delay_minutes > 0) {
+                delayText.innerHTML = `Traffic Alert: Delay of <strong>${trip.delay_minutes} minutes</strong> reported on this route.`;
+                delayBanner.classList.remove('hidden');
+            } else {
+                delayBanner.classList.add('hidden');
+            }
+        }
+        
+        // Update Seat Status Badge on HUD
+        const seatStatusEl = document.getElementById('live-seat-status');
+        if (seatStatusEl) {
+            const status = trip.seat_status || 'seats_available';
+            seatStatusEl.className = 'badge-seat'; // reset
+            if (status === 'seats_available') {
+                seatStatusEl.innerHTML = `<i class="fa-solid fa-chair"></i> Seats Available`;
+                seatStatusEl.classList.add('badge-seat-green');
+            } else if (status === 'standing_only') {
+                seatStatusEl.innerHTML = `<i class="fa-solid fa-users"></i> Standing Only`;
+                seatStatusEl.classList.add('badge-seat-yellow');
+            } else if (status === 'full') {
+                seatStatusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Bus Full`;
+                seatStatusEl.classList.add('badge-seat-red');
+            }
+        }
+
         liveBusRoute.innerHTML = `${trip.source} &rarr; ${trip.destination}`;
         liveBusTimes.textContent = `${trip.departure_time} - 10:00 AM`; // approximate end time
 
@@ -527,11 +593,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 nodeClass += ' reached-node';
             }
 
+            // Check if next stop has been reached
+            let segmentHtml = '';
+            if (index < totalStops - 1) {
+                const nextStopObj = stops[index + 1];
+                const nextStopLogs = logs.filter(l => l.stop_id === nextStopObj.id);
+                const nextReached = nextStopLogs.some(l => l.status === 'reached');
+                const isBottleneck = data.bottlenecks && data.bottlenecks.some(b => b.stop_id === nextStopObj.id);
+                
+                let segmentClass = 'map-segment-line';
+                if (nextReached) segmentClass += ' reached';
+                if (isBottleneck) segmentClass += ' bottleneck';
+                segmentHtml = `<div class="${segmentClass}"></div>`;
+            }
+
+            // Check if current stop is bottlenecked (has dynamic traffic delay)
+            const segmentBottleneck = data.bottlenecks && data.bottlenecks.find(b => b.stop_id === stop.id);
+            let delayTagHtml = '';
+            if (segmentBottleneck) {
+                delayTagHtml = `<span class="timeline-delay-tag" style="margin-left: 8px; font-size: 0.7rem; color: #ea580c; font-weight: 800; background: rgba(234,88,12,0.1); padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(234,88,12,0.2);"><i class="fa-solid fa-triangle-exclamation"></i> Heavy Traffic (+${segmentBottleneck.delay_minutes}m)</span>`;
+            }
+
             const li = document.createElement('li');
             li.className = nodeClass;
             li.innerHTML = `
                 <div class="map-dot"></div>
-                <span class="stop-name">${stop.stop_name}</span>
+                <span class="stop-name" style="display: inline-flex; align-items: center;">${stop.stop_name}${delayTagHtml}</span>
+                ${segmentHtml}
             `;
 
             // Draw the actual Live Bus indicator on the map container
@@ -681,6 +769,132 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </li>
             `;
+        });
+    }
+
+    // Custom Confirmation Dialog (OK / Cancel)
+    function showCustomConfirm(message) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-confirm-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 9, 7, 0.5)';
+            overlay.style.backdropFilter = 'blur(8px)';
+            overlay.style.webkitBackdropFilter = 'blur(8px)';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '9999';
+            overlay.style.animation = 'fadeIn 0.2s ease-out';
+
+            const card = document.createElement('div');
+            card.className = 'custom-confirm-card';
+            card.style.backgroundColor = 'var(--white)';
+            card.style.borderRadius = '20px';
+            card.style.padding = '32px 28px';
+            card.style.width = '90%';
+            card.style.maxWidth = '380px';
+            card.style.border = '1px solid var(--border-light)';
+            card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
+            card.style.textAlign = 'center';
+            card.style.animation = 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+            const iconContainer = document.createElement('div');
+            iconContainer.style.width = '64px';
+            iconContainer.style.height = '64px';
+            iconContainer.style.borderRadius = '50%';
+            iconContainer.style.backgroundColor = 'var(--bg-light)';
+            iconContainer.style.color = 'var(--primary-blue)';
+            iconContainer.style.fontSize = '1.8rem';
+            iconContainer.style.display = 'inline-flex';
+            iconContainer.style.alignItems = 'center';
+            iconContainer.style.justifyContent = 'center';
+            iconContainer.style.marginBottom = '20px';
+            iconContainer.style.transition = 'transform 0.3s ease';
+
+            const icon = document.createElement('i');
+            icon.className = 'fa-solid fa-triangle-exclamation';
+            iconContainer.appendChild(icon);
+            card.appendChild(iconContainer);
+
+            const text = document.createElement('p');
+            text.innerText = message;
+            text.style.fontSize = '1.1rem';
+            text.style.fontWeight = '600';
+            text.style.color = 'var(--text-dark)';
+            text.style.lineHeight = '1.5';
+            text.style.marginBottom = '28px';
+            card.appendChild(text);
+
+            const btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex';
+            btnContainer.style.gap = '14px';
+            btnContainer.style.justifyContent = 'center';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerText = 'Cancel';
+            cancelBtn.style.padding = '12px 24px';
+            cancelBtn.style.borderRadius = '12px';
+            cancelBtn.style.border = '1px solid var(--border-light)';
+            cancelBtn.style.backgroundColor = 'var(--bg-light)';
+            cancelBtn.style.color = 'var(--text-muted)';
+            cancelBtn.style.fontWeight = '700';
+            cancelBtn.style.fontSize = '0.95rem';
+            cancelBtn.style.cursor = 'pointer';
+            cancelBtn.style.transition = 'var(--transition-smooth)';
+            cancelBtn.style.flex = '1';
+            cancelBtn.addEventListener('mouseenter', () => {
+                cancelBtn.style.backgroundColor = 'var(--border-light)';
+                cancelBtn.style.transform = 'translateY(-1px)';
+            });
+            cancelBtn.addEventListener('mouseleave', () => {
+                cancelBtn.style.backgroundColor = 'var(--bg-light)';
+                cancelBtn.style.transform = 'none';
+            });
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.innerText = 'OK';
+            confirmBtn.style.padding = '12px 24px';
+            confirmBtn.style.borderRadius = '12px';
+            confirmBtn.style.border = 'none';
+            confirmBtn.style.backgroundColor = 'var(--primary-blue)';
+            confirmBtn.style.color = '#ffffff';
+            confirmBtn.style.fontWeight = '700';
+            confirmBtn.style.fontSize = '0.95rem';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.style.transition = 'var(--transition-smooth)';
+            confirmBtn.style.flex = '1';
+            confirmBtn.style.boxShadow = '0 4px 12px rgba(var(--btn-shadow-color), 0.25)';
+            confirmBtn.addEventListener('mouseenter', () => {
+                confirmBtn.style.filter = 'brightness(1.1)';
+                confirmBtn.style.transform = 'translateY(-1px)';
+                confirmBtn.style.boxShadow = '0 6px 16px rgba(var(--btn-shadow-color), 0.35)';
+            });
+            confirmBtn.addEventListener('mouseleave', () => {
+                confirmBtn.style.filter = 'none';
+                confirmBtn.style.transform = 'none';
+                confirmBtn.style.boxShadow = '0 4px 12px rgba(var(--btn-shadow-color), 0.25)';
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                resolve(false);
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                resolve(true);
+            });
+
+            btnContainer.appendChild(cancelBtn);
+            btnContainer.appendChild(confirmBtn);
+            card.appendChild(btnContainer);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
         });
     }
 

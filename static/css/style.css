@@ -2559,3 +2559,443 @@ body.dashboard-page {
     transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
+/* ==========================================================================
+   WEB APPLICATION & DESKTOP LAYOUT OVERRIDES (Passenger Portal)
+   ========================================================================== */
+
+body.passenger-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* 1. Normalize Mobile Frame to fit Web Layout */
+.mobile-frame {
+    width: 100%;
+    max-width: none !important;
+    height: auto !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Hide notch on web layout */
+.mobile-frame::before {
+    display: none !important;
+}
+
+/* 2. Global Web Container */
+.passenger-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 80px 20px; /* Extra bottom space for mobile navigation */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .passenger-content {
+        padding: 40px 24px;
+    }
+}
+
+/* 3. Screen adaptations */
+.app-screen {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    height: auto !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: visible !important;
+}
+
+.app-screen.active {
+    display: flex;
+}
+
+.screen-content {
+    padding: 0 !important;
+    overflow-y: visible !important;
+    flex: none !important;
+}
+
+/* Hide redundant screen headers on desktop since we have a global top header */
+@media (min-width: 768px) {
+    .app-screen > .app-header {
+        display: none !important;
+    }
+}
+
+/* 4. Desktop Navigation Styling */
+.desktop-nav {
+    display: none; /* Hidden on mobile */
+    align-items: center;
+    gap: 8px;
+}
+
+@media (min-width: 768px) {
+    .desktop-nav {
+        display: flex;
+    }
+}
+
+.desktop-nav .nav-item {
+    background: none;
+    border: none;
+    padding: 8px 18px;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 20px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.desktop-nav .nav-item i {
+    font-size: 1.1rem !important;
+}
+
+.desktop-nav .nav-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-blue);
+}
+
+.desktop-nav .nav-item.active {
+    background-color: rgba(234, 88, 12, 0.1);
+    color: var(--primary-blue) !important;
+    font-weight: 700;
+}
+
+/* Dark theme active highlights */
+.dark-theme .desktop-nav .nav-item.active {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: var(--primary-blue) !important;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-theme {
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.btn-theme:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-blue);
+}
+
+.passenger-username {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-light);
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+}
+
+.passenger-username i {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+@media (min-width: 768px) {
+    .passenger-username {
+        display: flex;
+    }
+}
+
+/* 5. Mobile Navigation Adaptation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    background-color: var(--white);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    height: 60px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .bottom-nav {
+        display: none !important;
+    }
+}
+
+/* 6. Dashboard Grids */
+
+/* Screen 1: Home Dashboard Grid */
+.home-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .home-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 30px;
+        align-items: start;
+    }
+}
+
+/* Welcome Card and search card desktop scaling */
+.user-welcome {
+    margin-bottom: 24px;
+}
+
+.user-welcome h2 {
+    font-size: 1.8rem;
+}
+
+/* Screen 3: Live Tracking Desktop Split Layout */
+.live-tracking-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .live-tracking-grid {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 32px;
+        align-items: start;
+    }
+}
+
+.live-tracking-grid .tracking-left-col,
+.live-tracking-grid .tracking-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Map area size adjustments on desktop to fit side-by-side view */
+.map-view-container {
+    margin-bottom: 0 !important;
+    height: 380px; /* Default height with scrollbar on mobile */
+    overflow-y: auto !important;
+}
+
+@media (min-width: 768px) {
+    .map-view-container {
+        height: 565px !important; /* Aligns perfectly with right column stack */
+        padding-bottom: 20px;
+    }
+}
+
+/* Make HUD and analytics clean cards */
+.next-stop-hud {
+    margin-bottom: 0 !important;
+}
+
+.delay-analysis-container {
+    margin-bottom: 0 !important;
+}
+
+/* 7. Search Results List Adaptations */
+.results-buses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .results-buses-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+/* 8. Timetable Responsive layout */
+.timetable-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .timetable-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .timetable-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 9. Alerts List Adaptation */
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .alerts-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+/* --- Premium Vertical Chart Dimensions & Scrollbars --- */
+.vertical-chart-card {
+    height: 210px !important;
+}
+
+.chart-viewport {
+    height: 210px !important;
+}
+
+.chart-bars-area {
+    height: 185px !important;
+}
+
+.chart-bars-area::after {
+    bottom: 35px !important; /* Aligns X-axis line precisely with bottom of Y-axis line */
+}
+
+/* Custom modern scrollbar for the scrollable timeline map card */
+.map-view-container::-webkit-scrollbar {
+    width: 6px;
+}
+.map-view-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 3px;
+}
+.map-view-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+.map-view-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Seat status broadcaster button styling */
+.btn-seat-status {
+    border: 2px solid var(--border-light) !important;
+    background-color: var(--bg-light) !important;
+    color: var(--text-muted) !important;
+    box-shadow: none;
+}
+.btn-seat-status:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.btn-seat-status[data-status="seats_available"].active {
+    border-color: #22c55e !important;
+    background-color: rgba(34, 197, 94, 0.08) !important;
+    color: #15803d !important;
+}
+.btn-seat-status[data-status="standing_only"].active {
+    border-color: #eab308 !important;
+    background-color: rgba(234, 179, 8, 0.08) !important;
+    color: #a16207 !important;
+}
+.btn-seat-status[data-status="full"].active {
+    border-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.08) !important;
+    color: #b91c1c !important;
+}
+
+/* Seat status badge styling */
+.badge-seat {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    border: 1px solid transparent !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+}
+.badge-seat-green {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    color: #22c55e !important;
+    border-color: rgba(34, 197, 94, 0.2) !important;
+}
+.badge-seat-yellow {
+    background-color: rgba(234, 179, 8, 0.1) !important;
+    color: #eab308 !important;
+    border-color: rgba(234, 179, 8, 0.2) !important;
+}
+.badge-seat-red {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Dynamic Map Segment Lines */
+.map-segment-line {
+    position: absolute;
+    left: 92px; /* Center aligned perfectly with map dot (92px) */
+    transform: translateX(-50%);
+    top: 12px; /* Starts from center of stop dot */
+    height: 74px; /* Spans the gap to the next stop */
+    width: 4px;
+    background-color: #cbd5e1; /* Default gray path */
+    z-index: 1;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.map-segment-line.reached {
+    background-color: var(--green-status) !important; /* Green for completed segments */
+}
+.map-segment-line.bottleneck {
+    background-color: #ea580c !important; /* Bold orange for bottleneck segments */
+    box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+    border-left: 2px dashed #ea580c;
+    width: 0px !important; /* Dotted line styling */
+}
+

@@ -36,6 +36,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def parse_db_timestamp(ts_str):
+    if not ts_str:
+        return None
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S.%f'):
+        try:
+            return datetime.strptime(ts_str.split('.')[0].replace('T', ' '), '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            continue
+    return None
+
 
 # --- Frontend Page Routes ---
 
@@ -410,6 +420,64 @@ def api_update_trip():
         VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     ''', (trip_id, stop_id, status))
 
+    # Auto-detect traffic bottlenecks when reaching a stop (excluding origin)
+    auto_delay_detected = False
+    auto_delay_minutes = 0
+    calculated_delay = 0
+
+    if status == 'reached' and stop['stop_order'] > 0:
+        try:
+            # Get previous stop
+            prev_stop = conn.execute('''
+                SELECT id, stop_name FROM stops 
+                WHERE route_id = ? AND stop_order = ?
+            ''', (trip['route_id'], stop['stop_order'] - 1)).fetchone()
+            
+            if prev_stop:
+                prev_left_log = conn.execute('''
+                    SELECT timestamp FROM trip_logs 
+                    WHERE trip_id = ? AND stop_id = ? AND status = 'left'
+                ''', (trip_id, prev_stop['id'])).fetchone()
+                
+                if prev_left_log:
+                    t_left = parse_db_timestamp(prev_left_log['timestamp'])
+                    t_now = datetime.utcnow()
+                    actual_transit = (t_now - t_left).total_seconds() / 60.0
+                    estimate = stop['estimated_duration_min']
+                    
+                    # Historical average check
+                    historical_logs = conn.execute('''
+                        SELECT 
+                            (julianday(l2.timestamp) - julianday(l1.timestamp)) * 1440.0 as historical_transit
+                        FROM trips t
+                        JOIN trip_logs l1 ON t.id = l1.trip_id AND l1.stop_id = ? AND l1.status = 'left'
+                        JOIN trip_logs l2 ON t.id = l2.trip_id AND l2.stop_id = ? AND l2.status = 'reached'
+                        WHERE t.status = 'completed' AND t.route_id = ?
+                    ''', (prev_stop['id'], stop_id, trip['route_id'])).fetchall()
+                    
+                    durations = [r['historical_transit'] for r in historical_logs if r['historical_transit'] > 0]
+                    if len(durations) < 3:
+                        mean = estimate
+                        std_dev = estimate * 0.20
+                    else:
+                        mean = sum(durations) / len(durations)
+                        variance = sum((x - mean) ** 2 for x in durations) / len(durations)
+                        std_dev = variance ** 0.5
+                        
+                    std_dev_safe = max(std_dev, 1.0)
+                    z_score = (actual_transit - mean) / std_dev_safe
+                    
+                    # If Z-score suggests bottleneck
+                    if z_score > 1.8 and actual_transit > mean + 2:
+                        auto_delay_detected = True
+                        auto_delay_minutes = int(actual_transit - mean)
+                        calculated_delay = auto_delay_minutes
+        except Exception as e:
+            print("Error in auto-delay calculation:", e)
+
+    # Accumulate delay instead of resetting to 0
+    new_delay = trip['delay_minutes'] + calculated_delay
+
     # Check if reached the last stop
     last_stop = conn.execute('''
         SELECT id FROM stops WHERE route_id = ? ORDER BY stop_order DESC LIMIT 1
@@ -419,16 +487,16 @@ def api_update_trip():
     if status == 'reached' and stop_id == last_stop['id']:
         cursor.execute('''
             UPDATE trips 
-            SET current_stop_id = ?, current_status = ?, status = 'completed', delay_minutes = 0, last_updated = CURRENT_TIMESTAMP
+            SET current_stop_id = ?, current_status = ?, status = 'completed', delay_minutes = ?, last_updated = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (stop_id, status, trip_id))
+        ''', (stop_id, status, new_delay, trip_id))
         is_completed = True
     else:
         cursor.execute('''
             UPDATE trips 
-            SET current_stop_id = ?, current_status = ?, delay_minutes = 0, last_updated = CURRENT_TIMESTAMP
+            SET current_stop_id = ?, current_status = ?, delay_minutes = ?, last_updated = CURRENT_TIMESTAMP
             WHERE id = ?
-        ''', (stop_id, status, trip_id))
+        ''', (stop_id, status, new_delay, trip_id))
 
     conn.commit()
     conn.close()
@@ -436,7 +504,9 @@ def api_update_trip():
     return jsonify({
         'success': True, 
         'message': f'Status updated to {status} at stop {stop["stop_name"]}.',
-        'is_completed': is_completed
+        'is_completed': is_completed,
+        'auto_delay_detected': auto_delay_detected,
+        'auto_delay_minutes': auto_delay_minutes
     })
 
 @app.route('/api/trips/report-delay', methods=['POST'])
@@ -467,6 +537,35 @@ def api_report_delay():
     conn.close()
 
     return jsonify({'success': True, 'message': f'Traffic delay of {delay_minutes} minutes reported successfully.'})
+
+@app.route('/api/trips/update-seats', methods=['POST'])
+@role_required('driver')
+def api_update_seats():
+    data = request.get_json() or {}
+    trip_id = data.get('trip_id')
+    seat_status = data.get('seat_status')
+
+    if not trip_id or seat_status not in ('seats_available', 'standing_only', 'full'):
+        return jsonify({'error': 'Invalid parameters or missing seat_status.'}), 400
+
+    conn = get_db_connection()
+    # Verify trip ownership and status
+    trip = conn.execute('SELECT * FROM trips WHERE id = ? AND driver_id = ? AND status = \'active\'', (trip_id, session['user_id'])).fetchone()
+    if not trip:
+        conn.close()
+        return jsonify({'error': 'Active trip not found or unauthorized access.'}), 404
+
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE trips 
+        SET seat_status = ?, last_updated = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (seat_status, trip_id))
+    
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True, 'message': f'Seat status updated to {seat_status} successfully.'})
 
 @app.route('/api/trips/end', methods=['POST'])
 @role_required('driver')
@@ -552,12 +651,46 @@ def api_trip_status(trip_id):
         ORDER BY timestamp ASC
     ''', (trip_id,)).fetchall()
     
+    # Calculate segment delays / bottlenecks on the fly
+    bottlenecks = []
+    stop_logs = {}
+    for l in logs:
+        sid = l['stop_id']
+        if sid not in stop_logs:
+            stop_logs[sid] = {}
+        stop_logs[sid][l['status']] = parse_db_timestamp(l['timestamp'])
+
+    stops_list = [dict(s) for s in stops]
+    for idx, s in enumerate(stops_list):
+        if idx == 0:
+            continue
+        prev_s = stops_list[idx - 1]
+        
+        # Check if segment l1 (prev 'left') and l2 (curr 'reached') exists
+        if prev_s['id'] in stop_logs and 'left' in stop_logs[prev_s['id']]:
+            if s['id'] in stop_logs and 'reached' in stop_logs[s['id']]:
+                left_time = stop_logs[prev_s['id']]['left']
+                reached_time = stop_logs[s['id']]['reached']
+                if left_time and reached_time:
+                    actual_transit = (reached_time - left_time).total_seconds() / 60.0
+                    estimate = s['estimated_duration_min']
+                    # Use a threshold: delay is > 3 minutes and actual time is > 1.2 times the estimate
+                    if actual_transit > estimate + 3:
+                        bottlenecks.append({
+                            'stop_id': s['id'],
+                            'prev_stop_id': prev_s['id'],
+                            'delay_minutes': int(actual_transit - estimate),
+                            'prev_stop_name': prev_s['stop_name'],
+                            'curr_stop_name': s['stop_name']
+                        })
+
     conn.close()
     
     return jsonify({
         'trip': dict(trip),
-        'stops': [dict(s) for s in stops],
-        'logs': [dict(l) for l in logs]
+        'stops': stops_list,
+        'logs': [dict(l) for l in logs],
+        'bottlenecks': bottlenecks
     })
 
 

@@ -113,6 +113,25 @@
                 </div>
             </div>
 
+            <!-- Seat Availability Broadcaster Card -->
+            <div class="seat-broadcaster-card" style="margin-top: 20px; padding: 20px; border-radius: 16px; background-color: var(--white); border: 1px solid var(--border-light); box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; color: var(--text-dark); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chair" style="color: var(--primary-blue);"></i> Broadcast Seat Availability</h3>
+                <div class="seat-status-buttons" style="display: flex; gap: 12px;">
+                    <button class="btn-seat-status active" data-status="seats_available" style="flex: 1; padding: 12px 10px; border-radius: 12px; border: 2px solid var(--border-light); background: var(--bg-light); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; color: var(--text-muted); transition: all 0.2s;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 1.25rem; color: #22c55e;"></i>
+                        <span style="font-size: 0.85rem;">Seats Available</span>
+                    </button>
+                    <button class="btn-seat-status" data-status="standing_only" style="flex: 1; padding: 12px 10px; border-radius: 12px; border: 2px solid var(--border-light); background: var(--bg-light); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; color: var(--text-muted); transition: all 0.2s;">
+                        <i class="fa-solid fa-users" style="font-size: 1.25rem; color: #eab308;"></i>
+                        <span style="font-size: 0.85rem;">Standing Only</span>
+                    </button>
+                    <button class="btn-seat-status" data-status="full" style="flex: 1; padding: 12px 10px; border-radius: 12px; border: 2px solid var(--border-light); background: var(--bg-light); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; color: var(--text-muted); transition: all 0.2s;">
+                        <i class="fa-solid fa-circle-xmark" style="font-size: 1.25rem; color: #ef4444;"></i>
+                        <span style="font-size: 0.85rem;">Bus Full</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Route Stop Progress List -->
             <div class="stops-progress-list">
                 <h3>Route Timeline Checkpoints</h3>

@@ -218,6 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 driverName.innerHTML = `<i class="fa-solid fa-user-circle"></i> ${currentUser.username}`;
             }
 
+            // Always load route and bus dropdowns
+            await loadDropdowns();
+
             // Check if there is an active trip running
             checkActiveTrip();
 
@@ -238,19 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fetch trip status and stops
                 await loadActiveTripDetails(activeTrip.id);
             } else {
-                activeTrip = null;
-                showSetupSection();
+                resetSetupSection();
             }
         } catch (err) {
             console.error('Error checking active trip:', err);
         }
     }
 
-    // 3. Show Setup Section & Load Dropdowns
-    async function showSetupSection() {
-        setupSection.classList.remove('hidden');
-        activeSection.classList.add('hidden');
-
+    // Load Setup Dropdowns (Routes & Buses)
+    async function loadDropdowns() {
         try {
             // Load Routes
             const routeRes = await fetch('/api/routes');
@@ -273,9 +272,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 4. Start New Trip
+    // 3. Show Setup Section
+    function showSetupSection() {
+        setupSection.classList.remove('hidden');
+        activeSection.classList.add('hidden');
+    }
+
+    // Reset and Unlock Setup Section
+    function resetSetupSection() {
+        activeTrip = null;
+        
+        // Unlock and reset setup dropdowns
+        routeSelect.disabled = false;
+        busSelect.disabled = false;
+        depTimeSelect.disabled = false;
+        routeSelect.value = "";
+        busSelect.value = "";
+        depTimeSelect.value = "06:30 AM";
+
+        // Reset button
+        if (startTripBtn) {
+            startTripBtn.innerHTML = '<span>Start Trip Now</span>';
+            startTripBtn.className = 'btn btn-primary btn-lg';
+            startTripBtn.disabled = false;
+        }
+
+        // Hide active trip section
+        activeSection.classList.add('hidden');
+        setupSection.classList.remove('hidden');
+    }
+
+    // 4. Start/Finish Trip Action Button
     if (startTripBtn) {
         startTripBtn.addEventListener('click', async () => {
+            if (activeTrip) {
+                // Handle "Trip Finished" action
+                const confirmed = await showCustomConfirm('Are you sure you want to finish the trip?');
+                if (!confirmed) return;
+
+                startTripBtn.disabled = true;
+                startTripBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Finishing Trip...';
+
+                try {
+                    const response = await fetch('/api/trips/end', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ trip_id: activeTrip.id })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showToast('Trip finished successfully.');
+                        resetSetupSection();
+                    } else {
+                        alert(data.error || 'Failed to end trip.');
+                        startTripBtn.disabled = false;
+                        startTripBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> <span>Trip Finished</span>';
+                    }
+                } catch (err) {
+                    console.error('Error ending trip:', err);
+                    alert('An error occurred.');
+                    startTripBtn.disabled = false;
+                    startTripBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> <span>Trip Finished</span>';
+                }
+                return;
+            }
+
+            // Handle "Start Trip" action
             const busId = busSelect.value;
             const routeId = routeSelect.value;
             const depTime = depTimeSelect.value;
@@ -299,6 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (hasError) return;
+
+            const confirmed = await showCustomConfirm('Are you sure you want to start the trip?');
+            if (!confirmed) return;
 
             startTripBtn.disabled = true;
             startTripBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Starting Journey...';
@@ -369,8 +436,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 6. Render Active Trip Panel
     function renderActiveTripDashboard() {
-        setupSection.classList.add('hidden');
+        setupSection.classList.remove('hidden'); // Keep setup panel visible as requested
         activeSection.classList.remove('hidden');
+
+        // Set value and disable inputs to lock them
+        routeSelect.value = activeTrip.route_id;
+        busSelect.value = activeTrip.bus_id;
+        depTimeSelect.value = activeTrip.departure_time;
+
+        routeSelect.disabled = true;
+        busSelect.disabled = true;
+        depTimeSelect.disabled = true;
+
+        // Change start button to finish button
+        if (startTripBtn) {
+            startTripBtn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> <span>Trip Finished</span>';
+            startTripBtn.className = 'btn btn-danger btn-lg';
+            startTripBtn.disabled = false;
+        }
+
+        // Update Seat status buttons state in UI based on activeTrip.seat_status
+        const seatStatus = activeTrip.seat_status || 'seats_available';
+        document.querySelectorAll('.btn-seat-status').forEach(btn => {
+            if (btn.dataset.status === seatStatus) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
 
         // Find Current Stop & Status
         const currentStopId = activeTrip.current_stop_id;
@@ -563,10 +656,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    if (data.auto_delay_detected) {
+                        showToast(`🚨 Traffic delay of ${data.auto_delay_minutes} mins auto-detected & reported!`);
+                    }
                     if (data.is_completed) {
                         alert('Journey Completed! The bus has reached the final destination. The trip has been completed.');
-                        activeTrip = null;
-                        showSetupSection();
+                        resetSetupSection();
                     } else {
                         // Reload details
                         await loadActiveTripDetails(activeTrip.id);
@@ -687,5 +782,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    // Handle Seat Availability updates
+    document.querySelectorAll('.btn-seat-status').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!activeTrip) return;
+            const status = btn.dataset.status;
+            
+            try {
+                const response = await fetch('/api/trips/update-seats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        trip_id: activeTrip.id,
+                        seat_status: status
+                    })
+                });
 
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(`Seat status updated: ${status.replace('_', ' ')}`);
+                    // Update active button state in UI
+                    document.querySelectorAll('.btn-seat-status').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    alert(data.error || 'Failed to update seat status.');
+                }
+            } catch (err) {
+                console.error('Error updating seat status:', err);
+                alert('An error occurred updating seat status.');
+            }
+        });
+    });
 });

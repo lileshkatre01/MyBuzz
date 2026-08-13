@@ -15,8 +15,40 @@
 </head>
 <body class="passenger-page light-theme">
     
-    <!-- Unified Mobile Container -->
-    <div class="mobile-frame">
+    <!-- Top Navigation Header -->
+    <header class="main-header">
+        <div class="header-logo" style="cursor: pointer;" onclick="location.href='/'">
+            <i class="fa-solid fa-bus-simple"></i>
+            <span class="app-name">MyBuzz <span class="badge badge-secondary">Nagpur ↔ Gondia</span></span>
+        </div>
+        
+        <!-- Desktop Nav menu -->
+        <nav class="desktop-nav">
+            <button class="nav-item active" data-screen="home">
+                <i class="fa-solid fa-house"></i> <span>Home</span>
+            </button>
+            <button class="nav-item" data-screen="timetable">
+                <i class="fa-solid fa-calendar-days"></i> <span>Time Table</span>
+            </button>
+            <button class="nav-item" data-screen="alerts">
+                <i class="fa-solid fa-bell"></i> <span>Alerts</span>
+            </button>
+            <button class="nav-item" data-screen="profile">
+                <i class="fa-solid fa-user"></i> <span>Profile</span>
+            </button>
+        </nav>
+
+        <div class="header-actions">
+            <!-- Theme Switcher Button -->
+            <button id="theme-toggle-btn" class="btn-theme" title="Toggle Theme">
+                <i class="fa-regular fa-moon"></i>
+            </button>
+            <span class="passenger-username"><i class="fa-solid fa-user-circle"></i> {{ username or 'Lucky' }}</span>
+        </div>
+    </header>
+
+    <!-- Main Content Container for Web Layout -->
+    <div class="passenger-content">
         
         <!-- ==================== SCREEN 1: HOME ==================== -->
         <div id="screen-home" class="app-screen active">
@@ -27,10 +59,13 @@
             </header>
             
             <div class="screen-content">
-                <div class="user-welcome">
-                    <h2>Hello, {{ username or 'Lucky' }} 👋</h2>
-                    <p>Track your bus in real-time</p>
-                </div>
+                <div class="home-grid">
+                    <!-- Left Column: Search & Welcome -->
+                    <div class="home-left-col">
+                        <div class="user-welcome">
+                            <h2>Hello, {{ username or 'Lucky' }} 👋</h2>
+                            <p>Track your bus in real-time</p>
+                        </div>
 
                 <!-- Route Search Card -->
                 <div class="search-card card">
@@ -59,6 +94,10 @@
                         Search Buses
                     </button>
                 </div>
+                    </div> <!-- End Left Column -->
+
+                    <!-- Right Column: Quick Access & Last Searches -->
+                    <div class="home-right-col">
 
                 <!-- Quick Access Grid -->
                 <div class="quick-access">
@@ -104,6 +143,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- ==================== SCREEN 2: SEARCH RESULTS ==================== -->
         <div id="screen-search-results" class="app-screen">
@@ -144,115 +185,128 @@
             </header>
 
             <div class="screen-content no-padding-bottom">
-                <!-- Bus Detail Tag Card -->
-                <div class="tracking-bus-card card">
-                    <div class="bus-top-row">
-                        <div class="bus-main-meta">
-                            <h3 id="live-bus-num">Bus MH40 N 1234</h3>
-                            <span class="badge badge-ordinary" id="live-bus-type">MSRTC Ordinary</span>
+                <div class="live-tracking-grid">
+                    
+                    <!-- Left Column: Live Map Timeline -->
+                    <div class="tracking-left-col">
+                        <!-- Custom Map Timeline Area -->
+                        <div class="map-view-container card">
+                            <div class="live-map-timeline-wrapper">
+                                <div class="map-line"></div>
+                                <ul class="map-timeline" id="map-timeline-stops">
+                                    <!-- Populated dynamically by JS -->
+                                </ul>
+                            </div>
+
+                            <!-- Map Buttons overlay -->
+                            <div class="map-controls">
+                                <button class="map-btn"><i class="fa-solid fa-crosshairs"></i></button>
+                                <button class="map-btn"><i class="fa-solid fa-compass"></i></button>
+                            </div>
                         </div>
-                        <span class="status-badge-green">On Time</span>
-                    </div>
-                    <div class="bus-route-row">
-                        <span class="route-summary" id="live-bus-route">Nagpur &rarr; Gondia</span>
-                        <span class="time-summary" id="live-bus-times">06:30 AM &ndash; 10:00 AM</span>
-                    </div>
-                </div>
-
-                <!-- Traffic Delay Alert Banner -->
-                <div id="tracking-delay-banner" class="hidden" style="margin: 0 16px 16px; padding: 12px 16px; border-radius: 12px; background-color: rgba(234, 88, 12, 0.1); border: 1.5px dashed #ea580c; color: #ea580c; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; animation: fadeIn 0.3s ease;">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i>
-                    <span id="tracking-delay-text">Traffic Alert: Experiencing a 10-minute delay.</span>
-                </div>
-
-                <!-- Custom Map Timeline Area -->
-                <div class="map-view-container card">
-                    <div class="live-map-timeline-wrapper">
-                        <div class="map-line"></div>
-                        <ul class="map-timeline" id="map-timeline-stops">
-                            <!-- Populated dynamically by JS -->
-                        </ul>
-                    </div>
-
-                    <!-- Map Buttons overlay -->
-                    <div class="map-controls">
-                        <button class="map-btn"><i class="fa-solid fa-crosshairs"></i></button>
-                        <button class="map-btn"><i class="fa-solid fa-compass"></i></button>
-                    </div>
-                </div>
-
-                <!-- Bus Dwell & Travel Time Analytics Panel -->
-                <div class="delay-analysis-container card collapsed">
-                    <div class="panel-header" id="toggle-analytics-btn" style="cursor: pointer; display: flex; align-items: center; width: 100%;">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <h4 style="margin-right: auto;">Bus Dwell & Travel Time Analytics</h4>
-                        <i class="fa-solid fa-chevron-down toggle-icon" style="font-size: 0.85rem; color: var(--text-muted); transition: transform 0.3s ease;"></i>
                     </div>
                     
-                    <div class="panel-body">
-                        <div class="vertical-chart-card">
-                            <div class="y-axis" id="chart-y-axis">
-                                <span>20m</span>
-                                <span>15m</span>
-                                <span>10m</span>
-                                <span>5m</span>
-                                <span>0m</span>
+                    <!-- Right Column: Dashboard Info & ML Analytics -->
+                    <div class="tracking-right-col">
+                        <!-- Bus Detail Tag Card -->
+                        <div class="tracking-bus-card card">
+                            <div class="bus-top-row">
+                                <div class="bus-main-meta">
+                                    <h3 id="live-bus-num">Bus MH40 N 1234</h3>
+                                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                                        <span class="badge badge-ordinary" id="live-bus-type">MSRTC Ordinary</span>
+                                        <span id="live-seat-status" class="badge-seat"></span>
+                                    </div>
+                                </div>
+                                <span class="status-badge-green">On Time</span>
                             </div>
-                            <div class="chart-viewport">
-                                <div class="chart-bars-area" id="vertical-chart-bars">
-                                    <!-- Populated dynamically by JS -->
+                            <div class="bus-route-row">
+                                <span class="route-summary" id="live-bus-route">Nagpur &rarr; Gondia</span>
+                                <span class="time-summary" id="live-bus-times">06:30 AM &ndash; 10:00 AM</span>
+                            </div>
+                        </div>
+
+                        <!-- Next Stop HUD Overlay Card -->
+                        <div class="next-stop-hud card">
+                            <div class="hud-main">
+                                <div class="hud-label-group">
+                                    <span class="hud-label">Next Stop</span>
+                                    <span class="hud-value" id="hud-next-stop-name">Tumsar</span>
+                                </div>
+                                <div class="hud-metrics">
+                                    <div class="metric">
+                                        <span class="metric-label">ETA</span>
+                                        <span class="metric-value" id="hud-eta-val">09:05 AM</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-label">Distance</span>
+                                        <span class="metric-value" id="hud-dist-val">25 km</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-label">Arriving</span>
+                                        <span class="metric-value" id="hud-time-val">20 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Mini Progress Bar -->
+                            <div class="hud-progress-wrapper">
+                                <div class="hud-progress-line">
+                                    <div class="hud-progress-fill" id="hud-progress-fill-bar" style="width: 50%;"></div>
+                                </div>
+                                <div class="hud-progress-dots">
+                                    <div class="hud-progress-dot reached"></div>
+                                    <div class="hud-progress-dot active" id="hud-dot-next"></div>
+                                    <div class="hud-progress-dot"></div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Chart Legend -->
-                        <div class="chart-legend">
-                            <div class="legend-item">
-                                <span class="legend-color dwell-color"></span>
-                                <span class="legend-label">Dwell Time (Stopped)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color travel-color"></span>
-                                <span class="legend-label">Travel Time (Transit)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Next Stop HUD Overlay Card -->
-                <div class="next-stop-hud card">
-                    <div class="hud-main">
-                        <div class="hud-label-group">
-                            <span class="hud-label">Next Stop</span>
-                            <span class="hud-value" id="hud-next-stop-name">Tumsar</span>
+                        <!-- Traffic Delay Alert Banner -->
+                        <div id="tracking-delay-banner" class="hidden" style="margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background-color: rgba(234, 88, 12, 0.1); border: 1.5px dashed #ea580c; color: #ea580c; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; animation: fadeIn 0.3s ease;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem;"></i>
+                            <span id="tracking-delay-text">Traffic Alert: Experiencing a 10-minute delay.</span>
                         </div>
-                        <div class="hud-metrics">
-                            <div class="metric">
-                                <span class="metric-label">ETA</span>
-                                <span class="metric-value" id="hud-eta-val">09:05 AM</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">Distance</span>
-                                <span class="metric-value" id="hud-dist-val">25 km</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">Arriving</span>
-                                <span class="metric-value" id="hud-time-val">20 min</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Bottom Mini Progress Bar -->
-                    <div class="hud-progress-wrapper">
-                        <div class="hud-progress-line">
-                            <div class="hud-progress-fill" id="hud-progress-fill-bar" style="width: 50%;"></div>
-                        </div>
-                        <div class="hud-progress-dots">
-                            <div class="hud-progress-dot reached"></div>
-                            <div class="hud-progress-dot active" id="hud-dot-next"></div>
-                            <div class="hud-progress-dot"></div>
+                        <!-- Bus Dwell & Travel Time Analytics Panel -->
+                        <div class="delay-analysis-container card">
+                            <div class="panel-header" id="toggle-analytics-btn" style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                                <i class="fa-solid fa-chart-simple"></i>
+                                <h4 style="margin-right: auto;">Bus Dwell & Travel Time Analytics</h4>
+                                <i class="fa-solid fa-chevron-down toggle-icon" style="font-size: 0.85rem; color: var(--text-muted); transition: transform 0.3s ease;"></i>
+                            </div>
+                            
+                            <div class="panel-body">
+                                <div class="vertical-chart-card">
+                                    <div class="y-axis" id="chart-y-axis">
+                                        <span>20m</span>
+                                        <span>15m</span>
+                                        <span>10m</span>
+                                        <span>5m</span>
+                                        <span>0m</span>
+                                    </div>
+                                    <div class="chart-viewport">
+                                        <div class="chart-bars-area" id="vertical-chart-bars">
+                                            <!-- Populated dynamically by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart Legend -->
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-color dwell-color"></span>
+                                        <span class="legend-label">Dwell Time (Stopped)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color travel-color"></span>
+                                        <span class="legend-label">Travel Time (Transit)</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -421,27 +475,27 @@
             </div>
         </div>
 
-        <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-screen="home">
-                <i class="fa-solid fa-house"></i>
-                <span>Home</span>
-            </button>
-            <button class="nav-item" data-screen="timetable">
-                <i class="fa-solid fa-bus"></i>
-                <span>My Buses</span>
-            </button>
-            <button class="nav-item" data-screen="alerts">
-                <i class="fa-solid fa-bell"></i>
-                <span>Alerts</span>
-            </button>
-            <button class="nav-item" data-screen="profile">
-                <i class="fa-solid fa-user"></i>
-                <span>Profile</span>
-            </button>
-        </nav>
+    </div> <!-- End passenger-content -->
 
-    </div>
+    <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-screen="home">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" data-screen="timetable">
+            <i class="fa-solid fa-bus"></i>
+            <span>My Buses</span>
+        </button>
+        <button class="nav-item" data-screen="alerts">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alerts</span>
+        </button>
+        <button class="nav-item" data-screen="profile">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
 
     <!-- Passenger Logic -->
     <script src="{{ url_for('static', filename='js/passenger.js') }}?v=1.5"></script>
